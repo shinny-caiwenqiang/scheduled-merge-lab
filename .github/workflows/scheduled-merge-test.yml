@@ -2,6 +2,11 @@ name: Scheduled merge test
 
 on:
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to merge"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,7 +22,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
-          PR_NUMBER: "12"
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
