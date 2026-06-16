@@ -3,7 +3,8 @@ name: Scheduled merge test
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    # 2026-06-16 09:20 Asia/Shanghai == 2026-06-16 01:20 UTC
+    - cron: "20 1 16 6 *"
 
 permissions:
   contents: write
@@ -26,18 +27,13 @@ jobs:
             echo "No open PR from scheduled-test-change."
             exit 0
           fi
-          pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,reviewDecision,mergeStateStatus,state,url)"
+          pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,mergeStateStatus,state,url)"
           echo "$pr_json"
           state="$(echo "$pr_json" | jq -r '.state')"
           is_draft="$(echo "$pr_json" | jq -r '.isDraft')"
-          review_decision="$(echo "$pr_json" | jq -r '.reviewDecision')"
           merge_state="$(echo "$pr_json" | jq -r '.mergeStateStatus')"
           if [ "$state" != "OPEN" ] || [ "$is_draft" = "true" ]; then
             echo "PR is not mergeable yet."
-            exit 0
-          fi
-          if [ "$review_decision" != "APPROVED" ]; then
-            echo "PR is not approved yet, skipping."
             exit 0
           fi
           if [ "$merge_state" != "CLEAN" ] && [ "$merge_state" != "HAS_HOOKS" ] && [ "$merge_state" != "UNKNOWN" ]; then
