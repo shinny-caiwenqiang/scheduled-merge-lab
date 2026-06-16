@@ -13,32 +13,32 @@ jobs:
   merge-test-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Merge target PR if ready
+      - name: Merge target PR by number if ready
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
-          TARGET_HEAD: scheduled-test-change
+          PR_NUMBER: "8"
         run: |
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
           echo "Current UTC: $(date -u -Iseconds)"
-          echo "Target head branch: $TARGET_HEAD"
-          pr_number="$(gh pr list --repo "$REPO" --state open --head "$TARGET_HEAD" --json number --jq ".[0].number // empty")"
-          if [ -z "$pr_number" ]; then
-            echo "No open PR from $TARGET_HEAD."
-            exit 0
-          fi
-          pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,mergeStateStatus,state,url)"
+          echo "Target PR: #$PR_NUMBER"
+
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json isDraft,mergeStateStatus,state,url)"
           echo "$pr_json"
+
           state="$(echo "$pr_json" | jq -r ".state")"
           is_draft="$(echo "$pr_json" | jq -r ".isDraft")"
           merge_state="$(echo "$pr_json" | jq -r ".mergeStateStatus")"
+
           if [ "$state" != "OPEN" ] || [ "$is_draft" = "true" ]; then
-            echo "PR is not mergeable yet."
+            echo "PR is not open or is draft, skipping."
             exit 0
           fi
+
           if [ "$merge_state" != "CLEAN" ] && [ "$merge_state" != "HAS_HOOKS" ] && [ "$merge_state" != "UNKNOWN" ]; then
             echo "PR merge state is $merge_state, skipping."
             exit 0
           fi
-          gh pr merge "$pr_number" --repo "$REPO" --rebase --delete-branch
+
+          gh pr merge "$PR_NUMBER" --repo "$REPO" --rebase --delete-branch
