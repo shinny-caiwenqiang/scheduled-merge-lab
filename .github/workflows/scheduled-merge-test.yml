@@ -3,8 +3,8 @@ name: Scheduled merge test
 on:
   workflow_dispatch:
   schedule:
-    # 2026-06-16 09:20 Asia/Shanghai == 2026-06-16 01:20 UTC
-    - cron: "20 1 16 6 *"
+    # 2026-06-16 09:40 Asia/Shanghai == 2026-06-16 01:40 UTC
+    - cron: "40 1 16 6 *"
 
 permissions:
   contents: write
