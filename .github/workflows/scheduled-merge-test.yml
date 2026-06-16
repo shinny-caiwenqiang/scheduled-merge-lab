@@ -1,0 +1,47 @@
+name: Scheduled merge test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+jobs:
+  merge-test-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge scheduled test PR if ready
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: shinny-caiwenqiang/scheduled-merge-lab
+        run: |
+          set -euo pipefail
+          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq '.[0].number // empty')"
+          if [ -z "$pr_number" ]; then
+            echo "No open PR from scheduled-test-change."
+            exit 0
+          fi
+          pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,reviewDecision,mergeStateStatus,state,url)"
+          echo "$pr_json"
+          state="$(echo "$pr_json" | jq -r '.state')"
+          is_draft="$(echo "$pr_json" | jq -r '.isDraft')"
+          review_decision="$(echo "$pr_json" | jq -r '.reviewDecision')"
+          merge_state="$(echo "$pr_json" | jq -r '.mergeStateStatus')"
+          if [ "$state" != "OPEN" ] || [ "$is_draft" = "true" ]; then
+            echo "PR is not mergeable yet."
+            exit 0
+          fi
+          if [ "$review_decision" != "APPROVED" ]; then
+            echo "PR is not approved yet, skipping."
+            exit 0
+          fi
+          if [ "$merge_state" != "CLEAN" ] && [ "$merge_state" != "HAS_HOOKS" ] && [ "$merge_state" != "UNKNOWN" ]; then
+            echo "PR merge state is $merge_state, skipping."
+            exit 0
+          fi
+          gh pr merge "$pr_number" --repo "$REPO" --rebase --delete-branch
