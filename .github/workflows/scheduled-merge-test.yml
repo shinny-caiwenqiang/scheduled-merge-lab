@@ -21,13 +21,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
+          TARGET_HEAD: shinny-caiwenqiang-patch-1
         run: |
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
           echo "Current UTC: $(date -u -Iseconds)"
-          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq ".[0].number // empty")"
+          echo "Target head branch: $TARGET_HEAD"
+          pr_number="$(gh pr list --repo "$REPO" --state open --head "$TARGET_HEAD" --json number --jq ".[0].number // empty")"
           if [ -z "$pr_number" ]; then
-            echo "No open PR from scheduled-test-change."
+            echo "No open PR from $TARGET_HEAD."
             exit 0
           fi
           pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,mergeStateStatus,state,url)"
