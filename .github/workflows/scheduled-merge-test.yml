@@ -17,7 +17,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
-          PR_NUMBER: "10"
+          PR_NUMBER: "11"
         run: |
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
