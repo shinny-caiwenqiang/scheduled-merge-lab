@@ -3,8 +3,8 @@ name: Scheduled merge test
 on:
   workflow_dispatch:
   schedule:
-    # 2026-06-16 10:50 Asia/Shanghai == 2026-06-16 02:50 UTC
-    - cron: "50 2 16 6 *"
+    # 2026-06-16 10:56 Asia/Shanghai == 2026-06-16 02:56 UTC
+    - cron: "56 2 16 6 *"
 
 permissions:
   contents: write
@@ -24,16 +24,16 @@ jobs:
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
           echo "Current UTC: $(date -u -Iseconds)"
-          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq '.[0].number // empty')"
+          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq ".[].number // empty")"
           if [ -z "$pr_number" ]; then
             echo "No open PR from scheduled-test-change."
             exit 0
           fi
           pr_json="$(gh pr view "$pr_number" --repo "$REPO" --json isDraft,mergeStateStatus,state,url)"
           echo "$pr_json"
-          state="$(echo "$pr_json" | jq -r '.state')"
-          is_draft="$(echo "$pr_json" | jq -r '.isDraft')"
-          merge_state="$(echo "$pr_json" | jq -r '.mergeStateStatus')"
+          state="$(echo "$pr_json" | jq -r ".state")"
+          is_draft="$(echo "$pr_json" | jq -r ".isDraft")"
+          merge_state="$(echo "$pr_json" | jq -r ".mergeStateStatus")"
           if [ "$state" != "OPEN" ] || [ "$is_draft" = "true" ]; then
             echo "PR is not mergeable yet."
             exit 0
