@@ -13,11 +13,11 @@ jobs:
   merge-test-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Merge delayed test PR if ready
+      - name: Merge target PR if ready
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
-          TARGET_HEAD: shinny-caiwenqiang-patch-1
+          TARGET_HEAD: scheduled-test-change
         run: |
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
