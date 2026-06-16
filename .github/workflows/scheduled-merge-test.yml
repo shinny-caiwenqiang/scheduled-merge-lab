@@ -2,9 +2,6 @@ name: Scheduled merge test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -15,7 +12,6 @@ permissions:
 jobs:
   merge-test-pr:
     runs-on: ubuntu-latest
-    environment: delayed-merge-test
     steps:
       - name: Merge delayed test PR if ready
         env:
