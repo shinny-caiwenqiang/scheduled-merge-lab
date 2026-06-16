@@ -2,9 +2,6 @@ name: Scheduled merge test
 
 on:
   workflow_dispatch:
-  schedule:
-    # 2026-06-16 10:56 Asia/Shanghai == 2026-06-16 02:56 UTC
-    - cron: "56 2 16 6 *"
 
 permissions:
   contents: write
@@ -15,8 +12,9 @@ permissions:
 jobs:
   merge-test-pr:
     runs-on: ubuntu-latest
+    environment: delayed-merge-test
     steps:
-      - name: Merge scheduled test PR if ready
+      - name: Merge delayed test PR if ready
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: shinny-caiwenqiang/scheduled-merge-lab
@@ -24,7 +22,7 @@ jobs:
           set -euo pipefail
           echo "Event: ${{ github.event_name }}"
           echo "Current UTC: $(date -u -Iseconds)"
-          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq ".[].number // empty")"
+          pr_number="$(gh pr list --repo "$REPO" --state open --head scheduled-test-change --json number --jq ".[0].number // empty")"
           if [ -z "$pr_number" ]; then
             echo "No open PR from scheduled-test-change."
             exit 0
